@@ -12,6 +12,7 @@ from qbittorrentapi import Client as qbClient
 from re import sub as resub
 from socket import setdefaulttimeout
 from subprocess import Popen, run as srun, check_output
+from shutil import which
 from sys import exit
 from time import sleep, time
 from tzlocal import get_localzone
@@ -458,8 +459,8 @@ AUTHOR_NAME = environ.get('AUTHOR_NAME', 'Searchx')
 AUTHOR_URL = environ.get('AUTHOR_URL', 'https://t.me/h_oneysingh')
 DRIVE_SEARCH_TITLE = environ.get('DRIVE_SEARCH_TITLE', 'Drive Search')
 GD_INFO = environ.get('GD_INFO', 'By @aspirantDiscuss')
-PROG_FINISH = environ.get('PROG_FINISH', '⬢')
-PROG_UNFINISH = environ.get('PROG_UNFINISH', '⬡')
+PROG_FINISH = environ.get('PROG_FINISH', 'â¬¢')
+PROG_UNFINISH = environ.get('PROG_UNFINISH', 'â¬¡')
 SOURCE_LINK_TITLE = environ.get('SOURCE_LINK_TITLE', 'Source Link')
 TIME_ZONE = environ.get('TIME_ZONE', 'Asia/Jakarta')
 TIME_ZONE_TITLE = environ.get('TIME_ZONE_TITLE', 'UTC+7')
@@ -762,7 +763,10 @@ if not config_dict['ARGO_TOKEN']:
 PORT = environ.get('PORT')
 Popen(f"gunicorn web.wserver:app --bind 0.0.0.0:{PORT} --worker-class gevent", shell=True)
 
-srun([QBIT_NAME, '-d', f'--profile={getcwd()}'], check=True)
+if which(QBIT_NAME):
+    srun([QBIT_NAME, '-d', f'--profile={getcwd()}'], check=True)
+else:
+    LOGGER.warning(f"{QBIT_NAME} executable not found! Skipping QBitTorrent daemon startup.")
 if not ospath.exists('.netrc'):
     with open('.netrc', 'w'):
         pass
