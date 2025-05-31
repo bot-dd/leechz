@@ -8,7 +8,6 @@ from os import remove as osremove, path as ospath, environ, getcwd
 from pymongo import MongoClient
 from pyrogram import Client as tgClient, __version__
 from pyrogram.enums import ParseMode
-from qbittorrentapi import Client as qbClient
 from re import sub as resub
 from socket import setdefaulttimeout
 from subprocess import Popen, run as srun, check_output
@@ -91,7 +90,6 @@ VID_MODE = {'vid_vid': 'Video + Video',
 
 DEFAULT_SPLIT_SIZE = 2097151000
 ARIA_NAME = environ.get('ARIA_NAME', 'wz2c')
-QBIT_NAME = environ.get('QBIT_NAME', 'wznox')
 FFMPEG_NAME = environ.get('FFMPEG_NAME', 'wzeg')
 
 # ============================ REQUIRED ================================
@@ -763,10 +761,6 @@ if not config_dict['ARGO_TOKEN']:
 PORT = environ.get('PORT')
 Popen(f"gunicorn web.wserver:app --bind 0.0.0.0:{PORT} --worker-class gevent", shell=True)
 
-if which(QBIT_NAME):
-    srun([QBIT_NAME, '-d', f'--profile={getcwd()}'], check=True)
-else:
-    LOGGER.warning(f"{QBIT_NAME} executable not found! Skipping QBitTorrent daemon startup.")
 if not ospath.exists('.netrc'):
     with open('.netrc', 'w'):
         pass
@@ -791,26 +785,11 @@ if not ospath.exists('accounts'):
     config_dict['USE_SERVICE_ACCOUNTS'] = False
 
 
-def get_client():
-    return qbClient(host='localhost', port=8090, VERIFY_WEBUI_CERTIFICATE=False, REQUESTS_ARGS={'timeout': (30, 60)})
 
 
 aria2c_global = ['bt-max-open-files', 'download-result', 'keep-unfinished-download-result', 'log', 'log-level', 'max-concurrent-downloads', 'max-download-result',
                  'max-overall-download-limit', 'save-session', 'max-overall-upload-limit', 'optimize-concurrent-downloads', 'save-cookies', 'server-stat-of']
 
-qb_client = get_client()
-if not qbit_options:
-    qbit_options = dict(qb_client.app_preferences())
-    del qbit_options['listen_port']
-    for k in list(qbit_options.keys()):
-        if k.startswith('rss'):
-            del qbit_options[k]
-else:
-    qb_opt = {**qbit_options}
-    for k, v in list(qb_opt.items()):
-        if v in ['', '*']:
-            del qb_opt[k]
-    qb_client.app_set_preferences(qb_opt)
 
 LOGGER.info('Creating client Pyrofork V%s...', __version__)
 kwargs = {'workers': 1000,  'parse_mode': ParseMode.HTML}
